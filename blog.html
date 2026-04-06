@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Building an Interactive Map with AI — A-dec Dev Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Source Sans 3", "Source Sans Pro", sans-serif;
+      color: #292929;
+      background: #fff;
+      line-height: 1.7;
+      font-size: 18px;
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      background: #003B5C;
+      color: #fff;
+      padding: 80px 40px 60px;
+      text-align: center;
+    }
+
+    .hero__label {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 700;
+      line-height: 1.15;
+      max-width: 800px;
+      margin: 0 auto 20px;
+    }
+
+    .hero__subtitle {
+      font-size: 20px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.7);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ---------- Article body ---------- */
+    .article {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    .article h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #003B5C;
+      margin: 56px 0 16px;
+      line-height: 1.25;
+    }
+
+    .article h2:first-of-type {
+      margin-top: 0;
+    }
+
+    .article h3 {
+      font-size: 21px;
+      font-weight: 600;
+      color: #003B5C;
+      margin: 32px 0 12px;
+    }
+
+    .article p {
+      margin-bottom: 20px;
+      color: #63666A;
+    }
+
+    .article strong {
+      color: #292929;
+      font-weight: 600;
+    }
+
+    .article ul, .article ol {
+      margin: 0 0 20px 24px;
+      color: #63666A;
+    }
+
+    .article li {
+      margin-bottom: 8px;
+    }
+
+    .article a {
+      color: #0072CE;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0,114,206,0.3);
+      transition: border-color 0.2s;
+    }
+
+    .article a:hover {
+      border-bottom-color: #0072CE;
+    }
+
+    /* ---------- Images ---------- */
+    .article figure {
+      margin: 32px 0;
+    }
+
+    .article figure img {
+      display: block;
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .article figcaption {
+      font-size: 14px;
+      color: #A1A3A6;
+      text-align: center;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    /* Full-bleed images break out of article width */
+    .article .full-bleed {
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      max-width: 100vw;
+      border-radius: 0;
+    }
+
+    .article .full-bleed img {
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    /* ---------- Code blocks ---------- */
+    .article code {
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 15px;
+      background: #F3F3F3;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #003B5C;
+    }
+
+    .article pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 24px 0;
+      line-height: 1.5;
+    }
+
+    .article pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 14px;
+    }
+
+    /* ---------- Callout box ---------- */
+    .callout {
+      background: #F2F8FD;
+      border-left: 4px solid #0072CE;
+      padding: 20px 24px;
+      border-radius: 0 8px 8px 0;
+      margin: 28px 0;
+    }
+
+    .callout p {
+      color: #003B5C;
+      margin: 0;
+      font-size: 16px;
+    }
+
+    /* ---------- Comparison ---------- */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 32px 0;
+    }
+
+    .comparison figure {
+      margin: 0;
+    }
+
+    @media (max-width: 600px) {
+      .comparison { grid-template-columns: 1fr; }
+    }
+
+    /* ---------- Table ---------- */
+    .article table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 15px;
+    }
+
+    .article th {
+      text-align: left;
+      font-weight: 600;
+      color: #003B5C;
+      padding: 10px 16px;
+      border-bottom: 2px solid #003B5C;
+    }
+
+    .article td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #E0E0E1;
+      color: #63666A;
+    }
+
+    .article tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ---------- Divider ---------- */
+    .article hr {
+      border: none;
+      height: 1px;
+      background: #E0E0E1;
+      margin: 48px 0;
+    }
+
+    /* ---------- Phase number ---------- */
+    .phase-num {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #0072CE;
+      margin-bottom: 4px;
+    }
+
+    /* ---------- Footer ---------- */
+    .blog-footer {
+      background: #F3F3F3;
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 14px;
+      color: #A1A3A6;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 768px) {
+      .hero { padding: 60px 24px 40px; }
+      .article { padding: 40px 20px 60px; }
+      .article h2 { font-size: 24px; }
+      body { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== HERO ========== -->
+<header class="hero">
+  <h1>Building an Interactive Global Map with AI</h1>
+  <p class="hero__subtitle">How we used Claude Code to create a pure HTML/CSS map component &mdash; including the hilarious missteps along the way.</p>
+</header>
+
+<!-- ========== ARTICLE ========== -->
+<article class="article">
+
+  <p>We needed an interactive "Global Locations" map for our About Us page. Something modern, responsive, and embeddable in our CMS without JavaScript dependencies. Instead of hand-coding the whole thing, we built it collaboratively with <strong>Claude Code</strong> &mdash; Anthropic's AI coding assistant. Here's how it went, warts and all.</p>
+
+  <hr>
+
+  <!-- PHASE 1 -->
+  <h2>Starting with a Static Image</h2>
+
+  <p>The starting point was a static map image already on our site &mdash; five A-dec locations pinned to a world map with colored badges. It looked fine, but it wasn't responsive, wasn't accessible, and couldn't be easily updated.</p>
+
+  <p>The goal: recreate it as a <strong>pure HTML/CSS component</strong> that could drop into any rich text editor. The requirements were straightforward:</p>
+
+  <ul>
+    <li>Modern, clean design with subtle animation</li>
+    <li>Fully responsive across mobile, tablet, and desktop</li>
+    <li>Accessible markup</li>
+    <li>No JavaScript dependencies</li>
+    <li>Five locations: Newberg (HQ), Nashville, Nuneaton, Paris, and Sydney</li>
+  </ul>
+
+  <hr>
+
+  <!-- PHASE 2 -->
+  <h2>The Hilarious First Attempt</h2>
+
+  <p>Claude's first move was ambitious: <em>hand-draw the entire world map as SVG paths from scratch.</em> No reference file, no tracing &mdash; just raw coordinate guesses for every continent.</p>
+
+  <p>The result was... something.</p>
+
+  <figure>
+    <img src="map%20images/Snag_14977c5d.png" alt="Claude's first attempt at hand-drawing SVG continents — unrecognizable blob shapes">
+    <figcaption>Claude's hand-drawn SVG continents. That's supposed to be Earth.</figcaption>
+  </figure>
+
+  <p>North America looks like a deflated balloon. Africa is a teardrop. Australia is a shapeless oval. It was genuinely one of the funniest things I've seen an AI produce.</p>
+
+  <div class="callout">
+    <p><strong>Lesson learned:</strong> AI-generated SVG map paths are not the way to go. A real map asset is essential &mdash; no matter how confident the AI sounds about "simplified continent outlines."</p>
+  </div>
+
+  <hr>
+
+  <!-- PHASE 3 -->
+  <h2>Sourcing a Real Map</h2>
+
+  <p>We needed an actual SVG world map file. Claude researched public domain options (Wikimedia Commons, FreeSVG, GitHub repos), but the files were either too detailed, had country borders we didn't want, or were too large.</p>
+
+  <p>I ended up providing my own <code>World.svg</code> asset &mdash; but at 1.5 MB, it was too large for Claude to read or inline. The solution was elegant: reference it as a standard <code>&lt;img&gt;</code> tag and use a CSS filter to control the color:</p>
+
+  <p>This meant the SVG file size didn't matter at all. It loads normally as an image, and CSS handles the rest.</p>
+
+  <hr>
+
+  <!-- PHASE 4 -->
+  <h2>The Second Attempt</h2>
+
+  <p>With a real map in place, Claude produced something that actually resembled Earth this time. Solid white map, colored badge labels, pulsing dots &mdash; the right visual direction. But the pins were still in the wrong spots, and the design felt safe. It was a slightly fancier version of what we already had.</p>
+
+  <figure>
+    <img src="map%20images/Snag_14978602.png" alt="Second attempt — real map SVG with colored badge labels, but pins in wrong positions">
+    <figcaption>A real map this time &mdash; but the pins still aren't in the right places.</figcaption>
+  </figure>
+
+  <p>Two things needed to happen: fix the pin positions, and push the design further. I asked Claude to take some creative liberty with the next version.</p>
+
+  <hr>
+
+  <!-- PHASE 5 -->
+  <h2>Updated Look and Feel</h2>
+
+  <p>This is where things got interesting. Claude came back with a completely different aesthetic:</p>
+
+  <ul>
+    <li><strong>Ghost map</strong> &mdash; SVG dropped to 12% opacity, creating a subtle backdrop</li>
+    <li><strong>Split typography</strong> &mdash; City name (bold), country (light), and type badge as separate visual layers</li>
+    <li><strong>Radar-style ping animation</strong> &mdash; Double ripple rings on each dot with staggered timing</li>
+    <li><strong>Labels always visible</strong> &mdash; Staggered fade-in on page load instead of hover-to-reveal</li>
+  </ul>
+
+  <p>The vibe shifted from "corporate infographic" to something much more editorial and modern. Only one problem &mdash; the pins were nowhere near the right locations.</p>
+
+  <hr>
+
+  <!-- PHASE 6 -->
+  <h2>The Pin Placement Saga</h2>
+
+  <p>This was the most entertaining debugging session. Claude tried three approaches to place the pins correctly:</p>
+
+  <h3>Attempt 1: Math</h3>
+  <p>Claude calculated pixel positions from latitude/longitude coordinates, assuming the SVG used an equirectangular projection. It didn't. Oregon ended up in Canada.</p>
+
+  <h3>Attempt 2: Browser Console Script</h3>
+  <p>Claude suggested pasting a JavaScript snippet into the browser console that would log click coordinates. It didn't work in my environment.</p>
+
+  <h3>Attempt 3: Built-In Click Helper</h3>
+  <p>The winning approach: Claude embedded a coordinate tool directly into the page. Click anywhere on the map, get a red dot and the exact CSS percentage position logged to a green overlay.</p>
+
+  <figure>
+    <img src="map%20images/Snag_1497c6d4.png" alt="V2 with the click helper tool — coordinate overlay visible in the top right corner">
+    <figcaption>The click helper in action. Note the coordinate readout in the top right.</figcaption>
+  </figure>
+
+  <p>I clicked each city one at a time and fed the coordinates back. We did it iteratively &mdash; place one pin, verify, move to the next. The final positions:</p>
+
+  <table>
+    <thead>
+      <tr><th>City</th><th>Left</th><th>Top</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Newberg, OR</td><td>13.7%</td><td>49.3%</td></tr>
+      <tr><td>Nashville, TN</td><td>23.8%</td><td>54%</td></tr>
+      <tr><td>Nuneaton, UK</td><td>46.9%</td><td>43.5%</td></tr>
+      <tr><td>Paris, FR</td><td>48.5%</td><td>47.4%</td></tr>
+      <tr><td>Sydney, AU</td><td>89.2%</td><td>83.2%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <p><strong>Takeaway:</strong> When math fails and console scripts don't cooperate, build the debugging tool into the product itself. The human-in-the-loop approach of click-and-report was faster than any automated solution.</p>
+  </div>
+
+  <hr>
+
+  <!-- PHASE 7 -->
+  <h2>Fixing Label Collisions</h2>
+
+  <p>With pins in the right spots, the next problem was obvious: Nuneaton and Paris are geographically close, and their labels were overlapping.</p>
+
+  <figure>
+    <img src="map%20images/Snag_1498231d.png" alt="Map showing UK and France labels with clean separation after fixing collisions">
+    <figcaption>The UK and France labels after resolving the collision.</figcaption>
+  </figure>
+
+  <p>We tried connector lines (vertical, L-shaped) but they looked messy. The final solution was simple: remove all connector lines, move the UK label above and to the right of its dot, and push the Paris label further right. Clean separation, no visual clutter.</p>
+
+  <p>Then came the pixel-level tuning &mdash; a back-and-forth of "move Sydney up 10px," "Nashville down 5," "mirror the UK label horizontally." The kind of fine-tuning that only makes sense when you're looking at it live.</p>
+
+  <hr>
+
+  <!-- PHASE 8 + 9 -->
+  <h2>Polish &amp; Production</h2>
+
+  <p>The map was too tall for a webpage section &mdash; lots of empty Arctic space at the top. The fix: wrap the image and pins in a shared inner container, shift it upward with <code>margin-top: -10%</code>, and clip with <code>overflow: hidden</code> on the outer wrapper. Gradient fades on both edges blend seamlessly into the dark blue background.</p>
+
+  <p>The key insight was that the <strong>image and pins must move together</strong>. An earlier attempt moved only the image, which broke every pin position.</p>
+
+  <figure>
+    <img src="map%20images/Snag_155df9e7.png" alt="Final polished map component with correct pin positions, clean labels, and gradient edge fades">
+    <figcaption>The final component: ghost map, staggered labels, pulsing dots, gradient fades.</figcaption>
+  </figure>
+
+  <p>For the final production version, we stripped out everything interactive &mdash; hover tooltips, cursor changes, focus states, the coordinate helper. All CSS was scoped under a single <code>.adec-map</code> class with prefixed keyframe names, making it safe to paste into any CMS without style conflicts.</p>
+
+  <hr>
+
+  <!-- TAKEAWAYS -->
+  <h2>What We Learned</h2>
+
+  <table>
+    <thead>
+      <tr><th>Decision</th><th>Why It Worked</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SVG as <code>&lt;img&gt;</code>, not inline</td><td>File too large to inline; CSS filter handles color</td></tr>
+      <tr><td>CSS-only animations</td><td>No JS dependency, works in any CMS</td></tr>
+      <tr><td>Percentage-based pin positions</td><td>Scales responsively with the map at any viewport</td></tr>
+      <tr><td>Inner container for cropping</td><td>Keeps pins aligned when shifting the map up</td></tr>
+      <tr><td>Click helper for pin placement</td><td>Most reliable way to map coordinates to a custom projection</td></tr>
+    </tbody>
+  </table>
+
+  <p>The whole process took about an hour. The biggest time sinks were pin placement and label collision &mdash; problems that required human eyes and iterative feedback. The AI handled the CSS architecture, responsive breakpoints, animation timing, and accessibility markup without much guidance.</p>
+
+  <p>Would I do it again this way? Absolutely. The collaboration model of "AI writes, human verifies visually, feeds corrections back" worked surprisingly well for a spatial layout problem. Just don't let it draw continents.</p>
+
+  <hr>
+
+  <h2>The Final Product</h2>
+
+  <p>Here it is &mdash; the live, working component. Pure HTML and CSS, no JavaScript.</p>
+
+</article>
+
+<!-- Live embedded map component -->
+<div style="background:#003B5C;width:100%;">
+<style>
+  .adec-map *, .adec-map *::before, .adec-map *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .adec-map {
+    position: relative;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 40px 40px;
+    overflow: hidden;
+    font-family: "Source Sans 3", "Source Sans Pro", sans-serif;
+  }
+
+  .adec-map .map__wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    max-height: 700px;
+  }
+
+  .adec-map .map__inner {
+    position: relative;
+    width: 100%;
+    margin-top: -10%;
+  }
+
+  .adec-map .map__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    opacity: 0.12;
+    filter: brightness(0) invert(1);
+  }
+
+  .adec-map .map__wrapper::before,
+  .adec-map .map__wrapper::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100px;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .adec-map .map__wrapper::before {
+    top: 0;
+    background: linear-gradient(to bottom, #003B5C, transparent);
+  }
+  .adec-map .map__wrapper::after {
+    bottom: 0;
+    background: linear-gradient(to top, #003B5C, transparent);
+  }
+
+  .adec-map .marker {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .adec-map .marker__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    position: relative;
+    box-shadow: 0 0 8px rgba(255,255,255,0.5);
+    pointer-events: none;
+  }
+
+  .adec-map .marker__dot::before,
+  .adec-map .marker__dot::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 12px; height: 12px;
+    margin: -6px 0 0 -6px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.6);
+    animation: adec-ping 3s ease-out infinite;
+  }
+  .adec-map .marker__dot::after {
+    animation-delay: 1.5s;
+  }
+
+  @keyframes adec-ping {
+    0%   { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+
+  .adec-map .marker__label {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    white-space: nowrap;
+    opacity: 0;
+    animation: adec-fadeIn 0.6s ease forwards;
+  }
+
+  @keyframes adec-fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .adec-map .marker__type {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+    border-radius: 2px;
+    width: fit-content;
+  }
+
+  .adec-map .marker__type--hq        { background: rgba(99,102,106,0.9); }
+  .adec-map .marker__type--education  { background: rgba(0,114,206,0.85); }
+  .adec-map .marker__type--subsidiary { background: rgba(0,121,107,0.9); }
+  .adec-map .marker__type--importer   { background: rgba(0,114,206,0.85); }
+
+  .adec-map .marker__city {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .adec-map .marker__country {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-top: -3px;
+  }
+
+  .adec-map .marker--newberg    { left: 13.7%; top: 49.3%; }
+  .adec-map .marker--nashville  { left: 23.8%; top: 54%; }
+  .adec-map .marker--nuneaton   { left: 46.9%; top: 43.5%; }
+  .adec-map .marker--paris      { left: 48.5%; top: 47.4%; }
+  .adec-map .marker--sydney     { left: 89.2%; top: 83.2%; }
+
+  .adec-map .marker--newberg .marker__label {
+    top: -70px; left: -10px; animation-delay: 0.1s;
+  }
+  .adec-map .marker--nashville .marker__label {
+    top: 25px; left: -10px; animation-delay: 0.25s;
+  }
+  .adec-map .marker--nuneaton .marker__label {
+    top: -50px; right: 24px; left: auto; align-items: flex-end; animation-delay: 0.4s;
+  }
+  .adec-map .marker--paris .marker__label {
+    top: -8px; left: 34px; animation-delay: 0.55s;
+  }
+  .adec-map .marker--sydney .marker__label {
+    top: -70px; right: 0; left: auto; align-items: flex-end; animation-delay: 0.7s;
+  }
+
+  @media (max-width: 1024px) {
+    .adec-map { padding: 40px 20px 30px; }
+    .adec-map .marker__city { font-size: 12px; letter-spacing: 1px; }
+    .adec-map .marker__country { font-size: 10px; }
+    .adec-map .marker__type { font-size: 9px; padding: 2px 6px; }
+  }
+
+  @media (max-width: 768px) {
+    .adec-map { padding: 20px 10px; }
+    .adec-map .marker__city { font-size: 10px; letter-spacing: 0.5px; }
+    .adec-map .marker__country { display: none; }
+    .adec-map .marker__type { font-size: 8px; padding: 1px 5px; }
+    .adec-map .marker__dot { width: 8px; height: 8px; }
+    .adec-map .marker__label { gap: 1px; }
+    .adec-map .marker--newberg .marker__label { top: -45px; }
+    .adec-map .marker--sydney .marker__label { top: -45px; }
+  }
+
+  @media (max-width: 480px) {
+    .adec-map .marker__type { display: none; }
+    .adec-map .marker__city { font-size: 9px; }
+    .adec-map .marker__dot { width: 6px; height: 6px; }
+    .adec-map .marker__dot::before,
+    .adec-map .marker__dot::after { width: 6px; height: 6px; margin: -3px 0 0 -3px; }
+    .adec-map .marker--newberg .marker__label,
+    .adec-map .marker--sydney .marker__label { top: -30px; }
+  }
+</style>
+
+<section class="adec-map" aria-label="A-dec Global Locations">
+  <div class="map__wrapper">
+    <div class="map__inner">
+
+      <img class="map__image" src="World.svg" alt="" role="presentation" />
+
+      <div class="marker marker--newberg" aria-label="Newberg, Oregon — Global Headquarters">
+        <div class="marker__label">
+          <span class="marker__type marker__type--hq">Global Headquarters</span>
+          <span class="marker__city">Newberg</span>
+          <span class="marker__country">Oregon, USA</span>
+        </div>
+        <div class="marker__dot"></div>
+      </div>
+
+      <div class="marker marker--nashville" aria-label="Nashville, Tennessee — Education and Showroom">
+        <div class="marker__dot"></div>
+        <div class="marker__label">
+          <span class="marker__type marker__type--education">Education &amp; Showroom</span>
+          <span class="marker__city">Nashville</span>
+          <span class="marker__country">Tennessee, USA</span>
+        </div>
+      </div>
+
+      <div class="marker marker--nuneaton" aria-label="Nuneaton, United Kingdom — Subsidiary">
+        <div class="marker__dot"></div>
+        <div class="marker__label">
+          <span class="marker__type marker__type--subsidiary">Subsidiary</span>
+          <span class="marker__city">Nuneaton</span>
+          <span class="marker__country">United Kingdom</span>
+        </div>
+      </div>
+
+      <div class="marker marker--paris" aria-label="Paris, France — Exclusive Importer and Showroom">
+        <div class="marker__dot"></div>
+        <div class="marker__label">
+          <span class="marker__type marker__type--importer">Exclusive Importer &amp; Showroom</span>
+          <span class="marker__city">Paris</span>
+          <span class="marker__country">France</span>
+        </div>
+      </div>
+
+      <div class="marker marker--sydney" aria-label="Sydney, Australia — Subsidiary">
+        <div class="marker__label">
+          <span class="marker__type marker__type--subsidiary">Subsidiary</span>
+          <span class="marker__city">Sydney</span>
+          <span class="marker__country">Australia</span>
+        </div>
+        <div class="marker__dot"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+</div>
+
+</body>
+</html>
